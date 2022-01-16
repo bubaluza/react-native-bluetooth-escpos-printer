@@ -111,7 +111,6 @@ public class BluetoothService {
     /**
      * Return the current connection state.
      */
-    //todo: get the method in react to check the current connection state
     public synchronized int getState() {
         return mState;
     }
@@ -182,9 +181,9 @@ public class BluetoothService {
     /**
      * Indicate that the connection was lost and notify the UI Activity.
      */
-    private void connectionLost() {
+    private void connectionLost(Map<String, Object> bundle) {
         setState(STATE_NONE, null);
-        infoObervers(MESSAGE_CONNECTION_LOST, null);
+        infoObervers(MESSAGE_CONNECTION_LOST, bundle);
     }
 
     /**
@@ -199,14 +198,20 @@ public class BluetoothService {
 
         public ConnectedThread(BluetoothDevice device) {
             mmDevice = device;
-            device.getAddress();
+        }
+
+        public Map<String, Object> createBundle() {
+            Map<String, Object> bundle = new HashMap<String, Object>();
+            bundle.put(DEVICE_NAME, mmDevice.getName());
+            bundle.put(DEVICE_ADDRESS, mmDevice.getAddress());
+            return bundle;
         }
 
         @Override
         public void run() {
             Log.i(TAG, "BEGIN mConnectThread");
             setName("ConnectThread");
-            Map<String, Object> bundle = new HashMap<String, Object>();
+            Map<String, Object> bundle = createBundle();
 
             // Always cancel discovery because it will slow down a connection
             mAdapter.cancelDiscovery();
@@ -274,8 +279,6 @@ public class BluetoothService {
             mmInStream = tmpIn;
             mmOutStream = tmpOut;
 
-            bundle.put(DEVICE_NAME, mmDevice.getName());
-            bundle.put(DEVICE_ADDRESS, mmDevice.getAddress());
             setState(STATE_CONNECTED, bundle);
 
             Log.i(TAG, "Connected");
@@ -292,17 +295,17 @@ public class BluetoothService {
                     bytes = mmInStream.read(buffer);
                     if (bytes > 0) {
                         // Send the obtained bytes to the UI Activity
-                        bundle = new HashMap<String, Object>();
+                        bundle = createBundle();
                         bundle.put("bytes", bytes);
                         infoObervers(MESSAGE_READ, bundle);
                     } else {
                         Log.e(TAG, "disconnected");
-                        connectionLost();
+                        connectionLost(bundle);
                         break;
                     }
                 } catch (IOException e) {
                     Log.e(TAG, "disconnected", e);
-                    connectionLost();
+                    connectionLost(bundle);
                     break;
                 }
             }
@@ -343,7 +346,7 @@ public class BluetoothService {
         public void cancel() {
             try {
                 mmSocket.close();
-                connectionLost();
+
             } catch (IOException e) {
                 Log.e(TAG, "close() of connect socket failed", e);
             }
