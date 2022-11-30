@@ -1,7 +1,7 @@
 {
   "name": "react-native-bluetooth-escpos-printer",
-  "version": "0.0.6",
-  "description": "React-Native plugin for the bluetooth ESC/POS printers.",
+  "version": "0.0.7",
+  "description": "React-Native plugin for the bluetooth ESC/POS printers. Fixes by Bubaluza",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
